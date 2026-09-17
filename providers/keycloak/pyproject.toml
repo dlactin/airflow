@@ -25,7 +25,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "apache-airflow-providers-keycloak"
-version = "0.10.0"
+version = "0.10.0.post1"
 description = "Provider package apache-airflow-providers-keycloak for Apache Airflow"
 readme = "README.rst"
 license = "Apache-2.0"
