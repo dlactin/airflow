@@ -17,6 +17,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, cast
 
 from fastapi import HTTPException, status
@@ -59,6 +60,9 @@ if TYPE_CHECKING:
     from airflow.providers.keycloak.auth_manager.user import KeycloakAuthManagerUser
 
 
+log = logging.getLogger(__name__)
+
+
 class KeycloakJWTMiddleware(BaseHTTPMiddleware):
     """
     Attach the Keycloak JWT tokens to the user.
@@ -79,7 +83,15 @@ class KeycloakJWTMiddleware(BaseHTTPMiddleware):
             except (
                 AuthManagerRefreshTokenExpiredException,
                 HTTPException,
-            ):
+            ) as exc:
+                log.warning(
+                    "Keycloak session rejected: type=%s detail=%s has_token=%s has_access=%s has_refresh=%s",
+                    type(exc).__name__,
+                    getattr(exc, "detail", str(exc)),
+                    bool(request.cookies.get(COOKIE_NAME_JWT_TOKEN)),
+                    bool(request.cookies.get(COOKIE_NAME_ACCESS_TOKEN)),
+                    bool(request.cookies.get(COOKIE_NAME_REFRESH_TOKEN)),
+                )
                 new_token = ""
 
             if user is not None:
