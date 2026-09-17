@@ -256,8 +256,10 @@ class KeycloakJWTMiddleware(BaseHTTPMiddleware):
         auth_manager = cast("KeycloakAuthManager", get_auth_manager())
         try:
             user = await auth_manager.get_user_from_token(jwt_token, access_token, refresh_token)
-        except ExpiredSignatureError:
+        except ExpiredSignatureError as exc:
+            log.warning("Keycloak session JWT expired: type=%s detail=%s", type(exc).__name__, str(exc))
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token Expired")
-        except InvalidTokenError:
+        except InvalidTokenError as exc:
+            log.warning("Keycloak session JWT invalid: type=%s detail=%s", type(exc).__name__, str(exc))
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid JWT token")
         return get_auth_manager().refresh_user(user=user), user
